@@ -13,9 +13,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)  # stored lowercased
     password_hash: Mapped[str] = mapped_column(String(255))
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Note(Base):
@@ -41,9 +39,5 @@ class Note(Base):
     title: Mapped[str | None] = mapped_column(String(200))
     content: Mapped[str] = mapped_column(Text)
     summary: Mapped[str | None] = mapped_column(Text)
-    tags: Mapped[list[str]] = mapped_column(
-        ARRAY(Text), server_default=text("'{}'"), default=list
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    tags: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default=text("'{}'"), default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
