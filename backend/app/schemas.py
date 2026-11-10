@@ -1,4 +1,7 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from datetime import datetime
+from typing import Annotated
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, StringConstraints, field_validator
 
 # --- Auth --------------------------------------------------------------------
 
@@ -33,3 +36,30 @@ class UserOut(BaseModel):
 
     id: int
     email: str
+
+
+# --- Notes -------------------------------------------------------------------
+
+
+class NoteIn(BaseModel):
+    # Blank or whitespace-only title -> None (matches the nullable column).
+    title: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)] | None = None
+    content: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50_000)
+    ]
+
+    @field_validator("title")
+    @classmethod
+    def blank_title_is_none(cls, v: str | None) -> str | None:
+        return v or None
+
+
+class NoteOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str | None
+    content: str
+    summary: str | None
+    tags: list[str]
+    created_at: datetime
