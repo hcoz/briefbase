@@ -1,5 +1,6 @@
 # Local stack. Values come from the root .env (cp .env.example .env).
-# For now only the database; backend and frontend services are added in Phase 5.
+#   docker compose up -d --build
+#   docker compose run --rm backend alembic upgrade head
 services:
   db:
     image: postgres:16
@@ -16,6 +17,27 @@ services:
       interval: 2s
       timeout: 3s
       retries: 15
+
+  backend:
+    build: ./backend
+    # DATABASE_URL in .env points at host "db", this compose service.
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # The browser (on the host) calls the backend, so localhost is right here.
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
 
 volumes:
   pgdata:

@@ -16,12 +16,28 @@ Paste a note, and BriefBase asks an AI model for a short **summary** and **3–5
 
 ## Run locally
 
-**Prerequisites:** Docker, Python 3.12.
+### With Docker (recommended)
+
+**Prerequisites:** Docker.
 
 ```bash
-# 1. Config
 cp .env.example .env
-#    then set JWT_SECRET in .env to the output of: openssl rand -hex 32
+#   set JWT_SECRET to the output of: openssl rand -hex 32
+#   set GEMINI_API_KEY (leave it empty to run without AI; notes are still saved)
+docker compose up -d --build
+docker compose run --rm backend alembic upgrade head
+open http://localhost:3000        # API: http://localhost:8000/docs
+```
+
+> Until the frontend is added, start only the API: `docker compose up -d --build db backend`.
+
+### Backend without Docker (for development)
+
+**Prerequisites:** Docker (for Postgres), Python 3.12.
+
+```bash
+# 1. Config: as above
+cp .env.example .env
 
 # 2. Database
 docker compose up -d db
