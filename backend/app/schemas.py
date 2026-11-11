@@ -44,8 +44,9 @@ class UserOut(BaseModel):
 class NoteIn(BaseModel):
     # Blank or whitespace-only title -> None (matches the nullable column).
     title: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)] | None = None
+    # max_length matches ai.MAX_INPUT_CHARS and the textarea limit in NoteForm.tsx.
     content: Annotated[
-        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50_000)
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=20_000)
     ]
 
     @field_validator("title")

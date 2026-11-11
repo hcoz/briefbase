@@ -16,7 +16,9 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-MAX_INPUT_CHARS = 20_000  # cost / latency guard
+# Same as the note content limit (schemas.NoteIn), so every accepted note is
+# summarized in full; the slice below is only a safety net.
+MAX_INPUT_CHARS = 20_000
 MIN_TAGS = 3
 MAX_TAGS = 5
 TIMEOUT_MS = 20_000  # google-genai takes milliseconds

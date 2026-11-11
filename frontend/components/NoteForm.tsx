@@ -4,7 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { createNote } from "@/lib/api";
 
-const MAX_CONTENT = 50_000;
+// Same limit as the API (NoteIn.content) and the AI input (ai.MAX_INPUT_CHARS).
+const MAX_CONTENT = 20_000;
 
 export default function NoteForm() {
   const queryClient = useQueryClient();
