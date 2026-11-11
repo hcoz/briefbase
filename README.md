@@ -2,7 +2,7 @@
 
 Paste a note, and BriefBase asks an AI model for a short **summary** and **3–5 tags**, then stores them with the note. You can list your notes, filter them by tag and delete them.
 
-> **Status: work in progress.** Backend (auth, notes, AI) and frontend work locally. Deployment is still to come.
+> **Status: work in progress.** Backend (auth, notes, AI) and frontend work locally. Deployment steps are below; live URLs to follow.
 
 ## Tech stack
 | Layer | Choice |
@@ -12,7 +12,7 @@ Paste a note, and BriefBase asks an AI model for a short **summary** and **3–5
 | Auth | JWT (HS256, 60 min), passwords hashed with argon2id |
 | AI | Google Gemini (`google-genai`, JSON mode) |
 | Frontend | Next.js (App Router, TypeScript) + TanStack React Query, Node 22 |
-| Hosting | Backend + Postgres on Railway, frontend on Vercel — *planned* |
+| Hosting | Backend (Docker) + Postgres on Railway, frontend on Vercel |
 
 ## Run locally
 
@@ -68,6 +68,48 @@ npm run dev                   # http://localhost:3000
 ```
 
 Stop the database with `docker compose down`. Add `-v` to also delete its data.
+
+## Deployment
+
+```
+Browser ──► Vercel (Next.js) ──HTTPS + Bearer JWT──► Railway: backend (Docker) ──private network──► Railway: Postgres
+                                                                    └──► Google Gemini API
+```
+
+Railway is configured in its dashboard; there is no config file in the repo.
+
+### 1. Railway: Postgres + backend
+1. New project → **Add PostgreSQL**.
+2. **New service → GitHub repo** → this repo. In the service **Settings**:
+   - **Root Directory**: `backend` (the Dockerfile there is detected automatically)
+   - **Pre-deploy command**: `alembic upgrade head` (migrations run before each new version goes live; a failed migration aborts the deploy)
+   - **Healthcheck path**: `/health`
+   - **Networking → Generate domain** (Railway routes it to the `$PORT` the container listens on)
+3. Service **Variables**:
+
+   | Variable | Value |
+   |---|---|
+   | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (reference variable, private network; the `postgresql://` scheme is rewritten to psycopg) |
+   | `JWT_SECRET` | output of `openssl rand -hex 32` (use a new value, not the local one) |
+   | `GEMINI_API_KEY` | your key |
+   | `GEMINI_MODEL` | `gemini-2.5-flash` |
+   | `CORS_ORIGINS` | `http://localhost:3000` for now; the Vercel URL is added in step 3 |
+
+4. Check: `curl https://<backend>.up.railway.app/health` → `{"status":"ok"}`.
+
+To run migrations from your laptop instead, use the Postgres service's `DATABASE_PUBLIC_URL`:
+`cd backend && DATABASE_URL='<public url>' alembic upgrade head`.
+
+### 2. Vercel: frontend
+1. **Add New → Project** → import this repo. **Root Directory**: `frontend` (Next.js is detected; Node 22 comes from `engines` in `package.json`).
+2. **Environment variable** `NEXT_PUBLIC_API_URL=https://<backend>.up.railway.app` (no trailing slash). It is inlined at build time, so changing it later needs a redeploy. The build fails if it is missing.
+3. Deploy.
+
+### 3. Connect them (CORS)
+Set `CORS_ORIGINS=https://<app>.vercel.app,http://localhost:3000` on the Railway backend, using the exact production domain from Vercel. Saving it redeploys the backend. Only listed origins are allowed, so Vercel *preview* URLs get CORS errors; use the production URL.
+
+### 4. Smoke test (browser DevTools → Network)
+Register → create a note (summary and tags appear) → `OPTIONS` preflight succeeds and `POST /notes` is followed by an automatic `GET /notes` → click a tag (`GET /notes?tag=…`) → delete. There should be no CORS errors in the console.
 
 ## API
 | Method | Path | Auth | Description |

@@ -41,7 +41,9 @@ class Settings(BaseSettings):
     @classmethod
     def split_origins(cls, v: object) -> object:
         if isinstance(v, str):
-            return [o.strip() for o in v.split(",") if o.strip()]
+            # Browsers send Origin without a trailing slash, so
+            # "https://x.vercel.app/" would never match; strip it.
+            return [o.strip().rstrip("/") for o in v.split(",") if o.strip()]
         return v
 
 
