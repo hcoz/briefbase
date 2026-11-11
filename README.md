@@ -2,7 +2,7 @@
 
 Paste a note, and BriefBase asks an AI model for a short **summary** and **3–5 tags**, then stores them with the note. You can list your notes, filter them by tag and delete them.
 
-> **Status: work in progress.** The backend has auth (register / login / me). Notes, AI, the frontend and deployment are still to come.
+> **Status: work in progress.** Backend (auth, notes, AI) and frontend work locally. Deployment is still to come.
 
 ## Tech stack
 | Layer | Choice |
@@ -10,8 +10,8 @@ Paste a note, and BriefBase asks an AI model for a short **summary** and **3–5
 | Backend | FastAPI, SQLAlchemy 2.0 (sync), Alembic, psycopg 3, Python 3.12 |
 | Database | PostgreSQL 16 |
 | Auth | JWT (HS256, 60 min), passwords hashed with argon2id |
-| AI | Google Gemini (`google-genai`, JSON mode) — *coming next* |
-| Frontend | Next.js (App Router, TypeScript) + TanStack React Query, Node 22 — *planned* |
+| AI | Google Gemini (`google-genai`, JSON mode) |
+| Frontend | Next.js (App Router, TypeScript) + TanStack React Query, Node 22 |
 | Hosting | Backend + Postgres on Railway, frontend on Vercel — *planned* |
 
 ## Run locally
@@ -28,8 +28,6 @@ docker compose up -d --build
 docker compose run --rm backend alembic upgrade head
 open http://localhost:3000        # API: http://localhost:8000/docs
 ```
-
-> Until the frontend is added, start only the API: `docker compose up -d --build db backend`.
 
 ### Backend without Docker (for development)
 
@@ -57,6 +55,17 @@ Open **http://localhost:8000/docs** (Swagger UI) to try the API:
 1. `POST /auth/register` with an email and a password of 8+ characters. Copy the `access_token`.
 2. Click **Authorize** and paste the token.
 3. `GET /auth/me` returns your user.
+
+### Frontend without Docker (for development)
+
+**Prerequisites:** Node 22, and the backend running on port 8000 (either way above).
+
+```bash
+cd frontend
+cp .env.example .env.local    # NEXT_PUBLIC_API_URL=http://localhost:8000
+npm ci
+npm run dev                   # http://localhost:3000
+```
 
 Stop the database with `docker compose down`. Add `-v` to also delete its data.
 

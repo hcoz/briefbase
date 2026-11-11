@@ -17,6 +17,17 @@ repos:
       - id: ruff-format
         files: ^backend/
 
+  # Frontend lint (needs `npm ci` in frontend/ first). Lints the whole app
+  # from frontend/ so the local eslint.config.mjs is picked up.
+  - repo: local
+    hooks:
+      - id: eslint-frontend
+        name: eslint (frontend)
+        entry: bash -c 'cd frontend && npx --no-install eslint --max-warnings=0'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|js|mjs)$
+        pass_filenames: false
+
   # Basic hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
