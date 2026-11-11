@@ -92,7 +92,7 @@ Railway is configured in its dashboard; there is no config file in the repo.
    | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` (reference variable, private network; the `postgresql://` scheme is rewritten to psycopg) |
    | `JWT_SECRET` | output of `openssl rand -hex 32` (use a new value, not the local one) |
    | `GEMINI_API_KEY` | your key |
-   | `GEMINI_MODEL` | `gemini-2.5-flash` |
+   | `GEMINI_MODEL` | `gemini-3.6-flash` |
    | `CORS_ORIGINS` | `http://localhost:3000` for now; the Vercel URL is added in step 3 |
 
 4. Check: `curl https://<backend>.up.railway.app/health` → `{"status":"ok"}`.
@@ -131,7 +131,7 @@ All of them are listed with placeholders in [.env.example](.env.example).
 | `JWT_SECRET` | backend | Required, at least 32 characters. There is no default |
 | `JWT_EXPIRE_MINUTES` | backend | Default 60 |
 | `GEMINI_API_KEY` | backend | If empty, AI is treated as unavailable |
-| `GEMINI_MODEL` | backend | Default `gemini-2.5-flash` |
+| `GEMINI_MODEL` | backend | Default `gemini-3.6-flash` |
 | `CORS_ORIGINS` | backend | Comma-separated frontend origins |
 | `NEXT_PUBLIC_API_URL` | frontend | Backend base URL |
 

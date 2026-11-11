@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 60
 
     gemini_api_key: str = ""  # empty -> AI treated as unavailable
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.6-flash"
 
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
 
