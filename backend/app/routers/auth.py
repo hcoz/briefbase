@@ -4,7 +4,13 @@ from sqlalchemy.exc import IntegrityError
 from app.db import DbSession
 from app.models import User
 from app.schemas import LoginIn, RegisterIn, Token, UserOut
-from app.security import CurrentUser, authenticate_user, create_access_token, hash_password
+from app.security import (
+    BEARER_HEADERS,
+    CurrentUser,
+    authenticate_user,
+    create_access_token,
+    hash_password,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -28,7 +34,7 @@ def login(body: LoginIn, db: DbSession) -> Token:
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED,
             "Invalid email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+            headers=BEARER_HEADERS,
         )
     return Token(access_token=create_access_token(user.id))
 

@@ -7,6 +7,7 @@ import NoteForm from "@/components/NoteForm";
 import NoteList, { NoteSkeletons, useDeleteNote } from "@/components/NoteList";
 import { getMe, getNotes } from "@/lib/api";
 import { clearToken, useToken } from "@/lib/auth";
+import { ME_KEY, notesKey } from "@/lib/constants";
 
 export default function NotesPage() {
   const router = useRouter();
@@ -20,9 +21,9 @@ export default function NotesPage() {
     if (token === null) router.replace("/login");
   }, [token, router]);
 
-  const me = useQuery({ queryKey: ["me"], queryFn: getMe, enabled: !!token });
+  const me = useQuery({ queryKey: ME_KEY, queryFn: getMe, enabled: !!token });
   const notes = useQuery({
-    queryKey: ["notes", tag],
+    queryKey: notesKey(tag),
     queryFn: () => getNotes(tag),
     enabled: !!token,
   });

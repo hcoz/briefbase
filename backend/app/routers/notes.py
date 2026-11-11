@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Query, Response, status
 from sqlalchemy import select
 
 from app import ai
+from app.constants import TAG_MAX_LENGTH
 from app.db import DbSession
 from app.models import Note
 from app.schemas import NoteIn, NoteOut
@@ -24,7 +25,7 @@ def _get_owned_note(db: DbSession, user: CurrentUser, note_id: int) -> Note:
 def list_notes(
     db: DbSession,
     user: CurrentUser,
-    tag: Annotated[str | None, Query(max_length=50)] = None,
+    tag: Annotated[str | None, Query(max_length=TAG_MAX_LENGTH)] = None,
 ) -> list[NoteOut]:
     # Matches ix_notes_user_id_created_at exactly, so no sort step.
     query = (

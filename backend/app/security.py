@@ -14,6 +14,7 @@ from app.db import DbSession
 from app.models import User
 
 ALGORITHM = "HS256"
+BEARER_HEADERS = {"WWW-Authenticate": "Bearer"}  # sent with every 401
 
 # --- Passwords (argon2id) ----------------------------------------------------
 
@@ -88,7 +89,7 @@ def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
+            headers=BEARER_HEADERS,
         )
     return user
 

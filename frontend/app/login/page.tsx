@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { login, register } from "@/lib/api";
 import { setToken, useToken } from "@/lib/auth";
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from "@/lib/constants";
 
 type Mode = "login" | "register";
 
@@ -83,11 +84,11 @@ export default function LoginPage() {
             <input
               className="input"
               type="password"
-              placeholder={isLogin ? "Your password" : "At least 8 characters"}
+              placeholder={isLogin ? "Your password" : `At least ${PASSWORD_MIN_LENGTH} characters`}
               autoComplete={isLogin ? "current-password" : "new-password"}
               required
-              minLength={isLogin ? undefined : 8}
-              maxLength={128}
+              minLength={isLogin ? undefined : PASSWORD_MIN_LENGTH}
+              maxLength={PASSWORD_MAX_LENGTH}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />

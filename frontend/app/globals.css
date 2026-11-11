@@ -488,6 +488,25 @@ textarea.input {
   height: 12px;
 }
 
+.skeleton-title {
+  width: 40%;
+  height: 16px;
+}
+
+.skeleton-short {
+  width: 75%;
+}
+
+.skeleton-chip {
+  width: 64px;
+  height: 22px;
+  border-radius: 999px;
+}
+
+.skeleton-chip-wide {
+  width: 80px;
+}
+
 @keyframes shimmer {
   from {
     background-position: 200% 0;

@@ -3,6 +3,9 @@ import { clearToken, getToken } from "./auth";
 // Inlined at build time by Next (see Dockerfile build arg / Vercel env).
 const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/+$/, "");
 
+const HTTP_NO_CONTENT = 204;
+const HTTP_UNAUTHORIZED = 401;
+
 export type User = { id: number; email: string };
 
 export type Note = {
@@ -48,10 +51,10 @@ async function apiFetch<T>(path: string, init: RequestInit = {}, auth = true): P
   if (!res.ok) {
     // Expired, invalid or revoked session: drop the token. The notes page
     // watches the token (useToken) and redirects to /login when it is gone.
-    if (res.status === 401 && auth) clearToken();
+    if (res.status === HTTP_UNAUTHORIZED && auth) clearToken();
     throw new Error(await errorMessage(res));
   }
-  if (res.status === 204) return undefined as T;
+  if (res.status === HTTP_NO_CONTENT) return undefined as T;
   return res.json() as Promise<T>;
 }
 

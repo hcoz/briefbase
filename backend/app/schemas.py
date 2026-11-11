@@ -3,6 +3,13 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, StringConstraints, field_validator
 
+from app.constants import (
+    CONTENT_MAX_LENGTH,
+    PASSWORD_MAX_LENGTH,
+    PASSWORD_MIN_LENGTH,
+    TITLE_MAX_LENGTH,
+)
+
 # --- Auth --------------------------------------------------------------------
 
 
@@ -16,14 +23,13 @@ class _EmailIn(BaseModel):
 
 
 class RegisterIn(_EmailIn):
-    # max_length caps the work argon2 does on an attacker-supplied input.
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=PASSWORD_MIN_LENGTH, max_length=PASSWORD_MAX_LENGTH)
 
 
 class LoginIn(_EmailIn):
     # No min_length here: a policy change must not lock out existing users,
     # and a too-short password should get the same 401 as a wrong one.
-    password: str = Field(max_length=128)
+    password: str = Field(max_length=PASSWORD_MAX_LENGTH)
 
 
 class Token(BaseModel):
@@ -43,10 +49,12 @@ class UserOut(BaseModel):
 
 class NoteIn(BaseModel):
     # Blank or whitespace-only title -> None (matches the nullable column).
-    title: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)] | None = None
-    # max_length matches ai.MAX_INPUT_CHARS and the textarea limit in NoteForm.tsx.
+    title: (
+        Annotated[str, StringConstraints(strip_whitespace=True, max_length=TITLE_MAX_LENGTH)] | None
+    ) = None
     content: Annotated[
-        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=20_000)
+        str,
+        StringConstraints(strip_whitespace=True, min_length=1, max_length=CONTENT_MAX_LENGTH),
     ]
 
     @field_validator("title")

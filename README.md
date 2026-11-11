@@ -46,6 +46,7 @@ The frontend and the backend are on different origins. The browser calls the bac
 backend/app/
   main.py        FastAPI app, CORS, /health
   config.py      all env vars in one place (pydantic-settings); fails fast if required ones are missing
+  constants.py   validation limits shared by schemas, models and the AI module
   db.py          engine, session dependency
   models.py      User, Note
   schemas.py     request/response models and validation
@@ -56,6 +57,7 @@ backend/alembic/versions/0001_create_users_and_notes.py   the schema
 frontend/
   lib/api.ts     fetch wrapper: base URL, Bearer token, error messages, 401 → logout
   lib/auth.ts    token in localStorage
+  lib/constants.ts   form limits (mirror the backend's) and React Query keys
   app/page.tsx   notes page: list, tag filter, logout
   components/    NoteForm (create), NoteList (list, tags, delete, re-summarize)
 ```

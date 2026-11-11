@@ -2,6 +2,9 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteNote, resummarize, type Note } from "@/lib/api";
+import { NOTES_KEY } from "@/lib/constants";
+
+const SKELETON_COUNT = 3; // placeholder cards shown while loading
 
 type Props = {
   notes: Note[];
@@ -20,9 +23,9 @@ export function useDeleteNote() {
   return useMutation({
     mutationFn: deleteNote,
     onMutate: async (id: number) => {
-      await queryClient.cancelQueries({ queryKey: ["notes"] }); // don't let a stale fetch overwrite us
-      const previous = queryClient.getQueriesData<Note[]>({ queryKey: ["notes"] });
-      queryClient.setQueriesData<Note[]>({ queryKey: ["notes"] }, (old) =>
+      await queryClient.cancelQueries({ queryKey: NOTES_KEY }); // don't let a stale fetch overwrite us
+      const previous = queryClient.getQueriesData<Note[]>({ queryKey: NOTES_KEY });
+      queryClient.setQueriesData<Note[]>({ queryKey: NOTES_KEY }, (old) =>
         old?.filter((n) => n.id !== id),
       );
       return { previous };
@@ -30,7 +33,7 @@ export function useDeleteNote() {
     onError: (_err, _id, context) => {
       context?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["notes"] }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: NOTES_KEY }),
   });
 }
 
@@ -54,14 +57,14 @@ export default function NoteList({ notes, activeTag, onSelectTag, onDelete }: Pr
 export function NoteSkeletons() {
   return (
     <ul className="notes" aria-busy="true" aria-label="Loading notes">
-      {[0, 1, 2].map((i) => (
+      {Array.from({ length: SKELETON_COUNT }, (_, i) => (
         <li key={i} className="card note">
-          <div className="skeleton skeleton-line" style={{ width: "40%", height: 16 }} />
+          <div className="skeleton skeleton-title" />
           <div className="skeleton skeleton-line" />
-          <div className="skeleton skeleton-line" style={{ width: "75%" }} />
+          <div className="skeleton skeleton-line skeleton-short" />
           <div className="row">
-            <div className="skeleton" style={{ width: 64, height: 22, borderRadius: 999 }} />
-            <div className="skeleton" style={{ width: 80, height: 22, borderRadius: 999 }} />
+            <div className="skeleton skeleton-chip" />
+            <div className="skeleton skeleton-chip skeleton-chip-wide" />
           </div>
         </li>
       ))}
@@ -72,7 +75,7 @@ export function NoteSkeletons() {
 // One component per note so each has its own re-summarize pending/error state.
 function NoteItem({ note, activeTag, onSelectTag, onDelete }: { note: Note } & Omit<Props, "notes">) {
   const queryClient = useQueryClient();
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["notes"] });
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: NOTES_KEY });
 
   const resum = useMutation({ mutationFn: () => resummarize(note.id), onSuccess: invalidate });
 

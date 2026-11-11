@@ -3,6 +3,8 @@ from typing import Annotated
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
+JWT_SECRET_MIN_LENGTH = 32
+
 
 class Settings(BaseSettings):
     """All configuration comes from environment variables (or a .env file).
@@ -20,7 +22,7 @@ class Settings(BaseSettings):
     )
 
     database_url: str
-    jwt_secret: str = Field(min_length=32)
+    jwt_secret: str = Field(min_length=JWT_SECRET_MIN_LENGTH)
     jwt_expire_minutes: int = 60
 
     gemini_api_key: str = ""  # empty -> AI treated as unavailable

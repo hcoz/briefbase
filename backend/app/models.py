@@ -4,6 +4,7 @@ from sqlalchemy import DateTime, ForeignKey, Index, String, Text, func, text
 from sqlalchemy.dialects.postgresql import ARRAY  # PG ARRAY supports .contains() -> @>
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.constants import EMAIL_MAX_LENGTH, PASSWORD_HASH_MAX_LENGTH, TITLE_MAX_LENGTH
 from app.db import Base
 
 
@@ -11,8 +12,9 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)  # stored lowercased
-    password_hash: Mapped[str] = mapped_column(String(255))
+    # Stored lowercased.
+    email: Mapped[str] = mapped_column(String(EMAIL_MAX_LENGTH), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(PASSWORD_HASH_MAX_LENGTH))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -36,7 +38,7 @@ class Note(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    title: Mapped[str | None] = mapped_column(String(200))
+    title: Mapped[str | None] = mapped_column(String(TITLE_MAX_LENGTH))
     content: Mapped[str] = mapped_column(Text)
     summary: Mapped[str | None] = mapped_column(Text)
     tags: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default=text("'{}'"), default=list)

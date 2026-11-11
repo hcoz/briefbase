@@ -3,9 +3,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { createNote } from "@/lib/api";
+import { CONTENT_MAX_LENGTH, NOTES_KEY, TITLE_MAX_LENGTH } from "@/lib/constants";
 
-// Same limit as the API (NoteIn.content) and the AI input (ai.MAX_INPUT_CHARS).
-const MAX_CONTENT = 20_000;
+const CONTENT_ROWS = 8; // visible height of the note textarea
 
 export default function NoteForm() {
   const queryClient = useQueryClient();
@@ -16,7 +16,7 @@ export default function NoteForm() {
     mutationFn: createNote,
     onSuccess: () => {
       // Prefix match: refetches the unfiltered list and every filtered one.
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      queryClient.invalidateQueries({ queryKey: NOTES_KEY });
       setTitle("");
       setContent("");
     },
@@ -40,7 +40,7 @@ export default function NoteForm() {
         <input
           className="input"
           placeholder="e.g. Weekly sync notes"
-          maxLength={200}
+          maxLength={TITLE_MAX_LENGTH}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
@@ -51,9 +51,9 @@ export default function NoteForm() {
         <textarea
           className="input"
           placeholder="Paste your note here…"
-          rows={8}
+          rows={CONTENT_ROWS}
           required
-          maxLength={MAX_CONTENT}
+          maxLength={CONTENT_MAX_LENGTH}
           value={content}
           onChange={(e) => setContent(e.target.value)}
         />
@@ -63,7 +63,7 @@ export default function NoteForm() {
 
       <div className="row">
         <span className="muted small">
-          {content.length.toLocaleString()} / {MAX_CONTENT.toLocaleString()}
+          {content.length.toLocaleString()} / {CONTENT_MAX_LENGTH.toLocaleString()}
         </span>
         <span className="spacer" />
         <button
