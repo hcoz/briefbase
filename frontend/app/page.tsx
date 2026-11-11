@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import NoteForm from "@/components/NoteForm";
-import NoteList from "@/components/NoteList";
+import NoteList, { useDeleteNote } from "@/components/NoteList";
 import { getMe, getNotes } from "@/lib/api";
 import { clearToken, useToken } from "@/lib/auth";
 
@@ -26,6 +26,7 @@ export default function NotesPage() {
     queryFn: () => getNotes(tag),
     enabled: !!token,
   });
+  const remove = useDeleteNote();
 
   if (!token) return <main>Loading…</main>;
 
@@ -54,6 +55,7 @@ export default function NotesPage() {
           </button>
         </p>
       )}
+      {remove.isError && <p className="error">Could not delete note: {remove.error.message}</p>}
 
       {notes.isPending ? (
         <p>Loading notes…</p>
@@ -62,7 +64,12 @@ export default function NotesPage() {
       ) : notes.data.length === 0 ? (
         <p className="muted">{tag ? `No notes tagged #${tag}.` : "No notes yet. Paste one above."}</p>
       ) : (
-        <NoteList notes={notes.data} activeTag={tag} onSelectTag={setTag} />
+        <NoteList
+          notes={notes.data}
+          activeTag={tag}
+          onSelectTag={setTag}
+          onDelete={(id) => remove.mutate(id)}
+        />
       )}
     </main>
   );
