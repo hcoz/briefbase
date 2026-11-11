@@ -17,6 +17,7 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 MAX_INPUT_CHARS = 20_000  # cost / latency guard
+MIN_TAGS = 3
 MAX_TAGS = 5
 TIMEOUT_MS = 20_000  # google-genai takes milliseconds
 
@@ -46,13 +47,14 @@ def _normalize_tags(tags: list[str]) -> list[str]:
 
 
 def _parse(raw: str | None) -> AIResult | None:
-    """Validate the model's JSON; None if malformed or effectively empty."""
+    """Validate the model's JSON; None if malformed, empty, or short of MIN_TAGS."""
     try:
         result = AIResult.model_validate_json(raw or "")
     except ValidationError:
         return None
     summary, tags = result.summary.strip(), _normalize_tags(result.tags)
-    if not summary or not tags:
+    # Counted after normalization, so duplicates and blanks don't count.
+    if not summary or len(tags) < MIN_TAGS:
         return None
     return AIResult(summary=summary, tags=tags)
 

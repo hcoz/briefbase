@@ -5,7 +5,7 @@ Paste a note, and BriefBase asks an AI model for a short **summary** and **3–5
 | | |
 |---|---|
 | **Live app** | https://briefbase-nu.vercel.app |
-| **Backend API** | https://https://briefbase-production.up.railway.app ([`/docs`](https://https://briefbase-production.up.railway.app/docs) for Swagger) |
+| **Backend API** | https://briefbase-production.up.railway.app ([`/docs`](https://briefbase-production.up.railway.app/docs) for Swagger) |
 | **Test account** | `demo@briefbase.dev` / `BriefBase.2026`, or register your own on the login screen (any email, password of 8+ characters) |
 | **AI provider** | Google Gemini (`gemini-3.6-flash`) |
 | **Demo video** | DEMO_VIDEO_URL_HERE |
@@ -13,7 +13,7 @@ Paste a note, and BriefBase asks an AI model for a short **summary** and **3–5
 ## Submission checklist
 - [x] Repo link: https://github.com/hcoz/briefbase
 - [x] Live Vercel URL: https://briefbase-nu.vercel.app
-- [x] Backend location: cloud, Railway: https://https://briefbase-production.up.railway.app (Postgres on Railway too)
+- [x] Backend location: cloud, Railway: https://briefbase-production.up.railway.app (Postgres on Railway too)
 - [x] Test account or registration instructions: see the table above
 - [x] AI provider used: Google Gemini
 - [x] `.env.example` committed: [.env.example](.env.example)
@@ -66,7 +66,7 @@ frontend/
 - **Schema only through Alembic.** Tables are created by the migration, never by `create_all` at runtime. On Railway the migration runs as a pre-deploy step, so a failed migration stops the deploy.
 - **Tags as a `text[]` column**, not a join table. A note has at most 5 tags and is never queried by tag on its own. A **GIN index** backs the tag filter, which uses `tags @> ARRAY[tag]` because `= ANY(tags)` can't use that index. The list query `WHERE user_id = ? ORDER BY created_at DESC, id DESC` matches a composite index exactly, so Postgres doesn't need a sort step.
 - **Ownership scoping.** Every notes query filters by the current user. A note that doesn't exist and a note that belongs to someone else both return **404**, so note ids from other users are never confirmed.
-- **AI failure policy: the note is always saved.** `ai.summarize()` never raises. A missing key, network error, quota error or timeout (20 s) is logged and the function returns `None`. If Gemini returns malformed or empty JSON, the call is **retried once** before giving up. When AI fails, the note is stored with `summary = null` and no tags, and the UI shows "Summary unavailable" with a **Re-summarize** button, so the user's text is never lost. Re-summarizing an existing note returns **502** on failure and leaves the note unchanged. Tags are normalized (trimmed, lowercased, `#` removed, deduplicated, at most 5). Input is truncated to 20k characters to limit cost and latency. The system prompt tells the model to treat the note only as text to summarize.
+- **AI failure policy: the note is always saved.** `ai.summarize()` never raises. A missing key, network error, quota error or timeout (20 s) is logged and the function returns `None`. If Gemini returns malformed or empty JSON, or fewer than 3 tags, the call is **retried once** before giving up. When AI fails, the note is stored with `summary = null` and no tags, and the UI shows "Summary unavailable" with a **Re-summarize** button, so the user's text is never lost. Re-summarizing an existing note returns **502** on failure and leaves the note unchanged. Tags are normalized (trimmed, lowercased, `#` removed, deduplicated, at most 5). Input is truncated to 20k characters to limit cost and latency. The system prompt tells the model to treat the note only as text to summarize.
 - **React Query cache.** Notes are cached under `["notes", tag]`. Creating, deleting and re-summarizing all call `invalidateQueries({ queryKey: ["notes"] })`. That is a prefix match, so the unfiltered list and every filtered list are refetched without a page reload. Delete is also **optimistic**: the note disappears from every cached list at once, comes back if the request fails, and the lists are refetched either way. Logging out clears the whole cache, so the next user on the same browser never sees the previous user's notes.
 - **JWT in localStorage.** The frontend and backend are on different sites, and the API returns the token in the response body. An httpOnly cookie would be safer against XSS, but it needs a same-origin proxy and CSRF handling, which is more than this scope needs. Mitigations: all user and AI text is rendered as plain React text (never `dangerouslySetInnerHTML`), tokens expire after 60 minutes, and the token is cleared on any 401.
 
@@ -161,7 +161,7 @@ The database name must end in `_test`, because the tests wipe it. The tests cove
 - **Auth:** register, login and `/auth/me`; duplicate email; missing, garbage, expired, wrong-secret and `alg: none` tokens all return 401; the token payload contains no email.
 - **Ownership:** user B can't list, delete or re-summarize user A's notes and gets 404.
 - **Notes:** AI result is stored; the note is still saved when AI fails; tag filter; newest-first order; validation.
-- **AI module:** malformed JSON is retried once and then gives up; provider errors return `None`; tags are normalized; long input is truncated.
+- **AI module:** malformed JSON or fewer than 3 tags is retried once and then gives up; provider errors return `None`; tags are normalized; long input is truncated.
 
 [CI](.github/workflows/ci.yml) runs on every push and pull request. Backend: Postgres service → `alembic upgrade head` → `alembic check` (models and migration match) → `pytest`. Frontend: `npm run lint` and `npm run build`.
 

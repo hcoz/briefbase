@@ -57,8 +57,15 @@ def test_tags_are_normalized(gemini):
 
 @pytest.mark.parametrize(
     "bad",
-    ["not json", '{"summary": "no tags"}', json.dumps({"summary": "s", "tags": []}), None],
-    ids=["not-json", "missing-field", "empty-tags", "no-text"],
+    [
+        "not json",
+        '{"summary": "no tags"}',
+        json.dumps({"summary": "s", "tags": []}),
+        json.dumps({"summary": "s", "tags": ["python", "sql"]}),
+        json.dumps({"summary": "s", "tags": ["python", "Python", "#python", "sql"]}),
+        None,
+    ],
+    ids=["not-json", "missing-field", "empty-tags", "two-tags", "two-unique-tags", "no-text"],
 )
 def test_malformed_output_is_retried_once(gemini, bad):
     fake = gemini(bad, VALID)
