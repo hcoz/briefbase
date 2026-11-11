@@ -50,6 +50,25 @@ export default function NoteList({ notes, activeTag, onSelectTag, onDelete }: Pr
   );
 }
 
+// Placeholder cards shown while the first fetch is in flight.
+export function NoteSkeletons() {
+  return (
+    <ul className="notes" aria-busy="true" aria-label="Loading notes">
+      {[0, 1, 2].map((i) => (
+        <li key={i} className="card note">
+          <div className="skeleton skeleton-line" style={{ width: "40%", height: 16 }} />
+          <div className="skeleton skeleton-line" />
+          <div className="skeleton skeleton-line" style={{ width: "75%" }} />
+          <div className="row">
+            <div className="skeleton" style={{ width: 64, height: 22, borderRadius: 999 }} />
+            <div className="skeleton" style={{ width: 80, height: 22, borderRadius: 999 }} />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 // One component per note so each has its own re-summarize pending/error state.
 function NoteItem({ note, activeTag, onSelectTag, onDelete }: { note: Note } & Omit<Props, "notes">) {
   const queryClient = useQueryClient();
@@ -57,24 +76,42 @@ function NoteItem({ note, activeTag, onSelectTag, onDelete }: { note: Note } & O
 
   const resum = useMutation({ mutationFn: () => resummarize(note.id), onSuccess: invalidate });
 
+  const created = new Date(note.created_at);
+
   // All user and AI text is rendered as plain React text (escaped), never as HTML.
   return (
-    <li className="card">
+    <li className="card note">
       <div className="row">
-        <strong>{note.title ?? "Untitled"}</strong>
+        <h3 className={note.title ? "note-title" : "note-title untitled"}>
+          {note.title ?? "Untitled"}
+        </h3>
         <span className="spacer" />
-        <small className="muted">{new Date(note.created_at).toLocaleString()}</small>
+        <time
+          className="note-date"
+          dateTime={note.created_at}
+          title={created.toLocaleString()}
+        >
+          {created.toLocaleDateString(undefined, { dateStyle: "medium" })}
+        </time>
       </div>
 
-      {note.summary ? <p>{note.summary}</p> : <p className="muted">Summary unavailable.</p>}
+      {note.summary ? (
+        <p className="note-summary">{note.summary}</p>
+      ) : (
+        <div className="row">
+          <span className="badge-warn">Summary unavailable</span>
+          <span className="muted small">Try re-summarizing.</span>
+        </div>
+      )}
 
       {note.tags.length > 0 && (
-        <div className="tags">
+        <div className="chips">
           {note.tags.map((t) => (
             <button
               key={t}
-              className={t === activeTag ? "tag active" : "tag"}
+              className={t === activeTag ? "chip active" : "chip"}
               onClick={() => onSelectTag(t)}
+              aria-pressed={t === activeTag}
             >
               #{t}
             </button>
@@ -82,20 +119,31 @@ function NoteItem({ note, activeTag, onSelectTag, onDelete }: { note: Note } & O
         </div>
       )}
 
-      <details>
-        <summary>Original note</summary>
-        <p className="content">{note.content}</p>
-      </details>
+      {resum.isError && <p className="alert">{resum.error.message}</p>}
 
-      <div className="row">
-        <button onClick={() => resum.mutate()} disabled={resum.isPending}>
-          {resum.isPending ? "Summarizing…" : "Re-summarize"}
-        </button>
-        <button onClick={() => onDelete(note.id)} disabled={resum.isPending}>
-          Delete
-        </button>
+      <div className="note-footer">
+        <details className="original">
+          <summary>Show original</summary>
+          <p className="content">{note.content}</p>
+        </details>
+        <div className="note-actions">
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => resum.mutate()}
+            disabled={resum.isPending}
+          >
+            {resum.isPending && <span className="spinner" aria-hidden="true" />}
+            {resum.isPending ? "Summarizing…" : "Re-summarize"}
+          </button>
+          <button
+            className="btn btn-ghost btn-danger btn-sm"
+            onClick={() => onDelete(note.id)}
+            disabled={resum.isPending}
+          >
+            Delete
+          </button>
+        </div>
       </div>
-      {resum.isError && <p className="error">{resum.error.message}</p>}
     </li>
   );
 }

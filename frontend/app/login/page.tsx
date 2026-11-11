@@ -6,11 +6,13 @@ import { useEffect, useState } from "react";
 import { login, register } from "@/lib/api";
 import { setToken, useToken } from "@/lib/auth";
 
+type Mode = "login" | "register";
+
 export default function LoginPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const token = useToken();
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -29,53 +31,76 @@ export default function LoginPage() {
 
   const isLogin = mode === "login";
 
+  function switchMode(next: Mode) {
+    setMode(next);
+    auth.reset();
+  }
+
   return (
-    <main>
-      <h1>BriefBase</h1>
-      <h2>{isLogin ? "Log in" : "Create an account"}</h2>
-      <form
-        className="stack"
-        onSubmit={(e) => {
-          e.preventDefault();
-          auth.mutate();
-        }}
-      >
-        <input
-          type="email"
-          placeholder="Email"
-          autoComplete="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder={isLogin ? "Password" : "Password (at least 8 characters)"}
-          autoComplete={isLogin ? "current-password" : "new-password"}
-          required
-          minLength={isLogin ? undefined : 8}
-          maxLength={128}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit" disabled={auth.isPending}>
-          {auth.isPending ? "Please wait…" : isLogin ? "Log in" : "Register"}
-        </button>
-        {auth.isError && <p className="error">{auth.error.message}</p>}
-      </form>
-      <p>
-        {isLogin ? "No account yet? " : "Already have an account? "}
-        <button
-          type="button"
-          className="link"
-          onClick={() => {
-            setMode(isLogin ? "register" : "login");
-            auth.reset();
+    <main className="center-screen">
+      <div className="auth">
+        <div className="auth-intro">
+          <span className="brand">
+            <span className="brand-mark" aria-hidden="true">
+              B
+            </span>
+            BriefBase
+          </span>
+          <p className="muted">Paste a note, get an AI summary and tags.</p>
+        </div>
+
+        <form
+          className="card stack"
+          onSubmit={(e) => {
+            e.preventDefault();
+            auth.mutate();
           }}
         >
-          {isLogin ? "Register" : "Log in"}
-        </button>
-      </p>
+          <div className="segmented" role="group" aria-label="Choose login or registration">
+            <button type="button" aria-pressed={isLogin} onClick={() => switchMode("login")}>
+              Log in
+            </button>
+            <button type="button" aria-pressed={!isLogin} onClick={() => switchMode("register")}>
+              Register
+            </button>
+          </div>
+
+          <label className="field">
+            <span className="field-label">Email</span>
+            <input
+              className="input"
+              type="email"
+              placeholder="you@example.com"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
+
+          <label className="field">
+            <span className="field-label">Password</span>
+            <input
+              className="input"
+              type="password"
+              placeholder={isLogin ? "Your password" : "At least 8 characters"}
+              autoComplete={isLogin ? "current-password" : "new-password"}
+              required
+              minLength={isLogin ? undefined : 8}
+              maxLength={128}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
+
+          {auth.isError && <p className="alert">{auth.error.message}</p>}
+
+          <button type="submit" className="btn btn-primary btn-block" disabled={auth.isPending}>
+            {auth.isPending && <span className="spinner" aria-hidden="true" />}
+            {auth.isPending ? "Please wait…" : isLogin ? "Log in" : "Create account"}
+          </button>
+        </form>
+      </div>
     </main>
   );
 }
