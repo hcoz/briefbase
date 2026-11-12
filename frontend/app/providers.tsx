@@ -5,7 +5,7 @@ import { useState } from "react";
 import { QUERY_RETRY_COUNT } from "@/lib/constants";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  // Created once per browser session (inside useState), never shared at module level.
+  // Created in useState, not at module level, so the cache is never shared between users.
   const [queryClient] = useState(
     () => new QueryClient({ defaultOptions: { queries: { retry: QUERY_RETRY_COUNT } } }),
   );

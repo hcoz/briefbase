@@ -24,8 +24,8 @@ class Note(Base):
         # List query: WHERE user_id = ? ORDER BY created_at DESC, id DESC.
         # id is a tie-breaker so the order is always deterministic; having it in
         # the index means rows come out pre-sorted (no sort step).
-        # Leading column is user_id, so this also serves plain user_id lookups
-        # (ownership checks, FK cascade) — no separate user_id index needed.
+        # Leading column is user_id, so this also covers the FK cascade
+        # (DELETE ... WHERE user_id = ?); no separate user_id index needed.
         Index(
             "ix_notes_user_id_created_at",
             "user_id",

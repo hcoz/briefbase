@@ -35,11 +35,6 @@ Paste a note, and BriefBase asks an AI model for a short **summary** and **3–5
 
 ## Architecture
 
-```
-Browser ──► Vercel (Next.js) ──HTTPS + Bearer JWT──► Railway: backend (Docker) ──private network──► Railway: Postgres
-                                                                    └──► Google Gemini API
-```
-
 The frontend and the backend are on different origins. The browser calls the backend directly, using the URL in `NEXT_PUBLIC_API_URL`, and the backend allows the Vercel origin through `CORS_ORIGINS`. The backend is hosted in the cloud, so no tunnel is needed.
 
 ```
@@ -134,6 +129,10 @@ All of them are listed with placeholders in [.env.example](.env.example).
 | `CORS_ORIGINS` | backend | Comma-separated frontend origins |
 | `NEXT_PUBLIC_API_URL` | frontend | Backend base URL. Inlined at build time |
 
+## Development
+- Pre-commit hooks (gitleaks, ruff, hygiene): `brew install pre-commit && pre-commit install`, then `pre-commit run --all-files`.
+- New migration (from `backend/`): `alembic revision --autogenerate -m "..."`, review the file by hand, then `alembic upgrade head`. `alembic check` reports drift between the models and the migrations.
+
 ## API
 | Method | Path | Auth | Description |
 |---|---|---|---|
@@ -208,8 +207,4 @@ Register → create a note (summary and tags appear) → `OPTIONS` preflight suc
 - **Passwords** are hashed with argon2id. Login runs a hash check even for unknown emails, so response time doesn't reveal which emails are registered.
 - **Tokens** carry only the user id, `iat` and `exp`. The server accepts HS256 only, which blocks `alg: none` and algorithm-confusion attacks, and it requires all three claims.
 - **Secrets** come only from environment variables. The app refuses to start without `DATABASE_URL` or with a `JWT_SECRET` shorter than 32 characters. gitleaks runs as a pre-commit hook.
-- **Not built, on purpose (scope):** stateless JWTs can't be revoked, so logout happens on the client and the short expiry limits the risk. There are no refresh tokens and no login rate limiting. The AI call runs inside the create request, which takes a few seconds; a background job queue would be the next step at larger scale.
-
-## Development
-- Pre-commit hooks (gitleaks, ruff, hygiene): `brew install pre-commit && pre-commit install`, then `pre-commit run --all-files`.
-- New migration (from `backend/`): `alembic revision --autogenerate -m "..."`, review the file by hand, then `alembic upgrade head`. `alembic check` reports drift between the models and the migrations.
+- **Not built, on purpose (scope):** stateless JWTs can't be revoked, so logout happens on the client and the short expiry limits the risk. There are no refresh tokens and no login rate limiting. The AI call runs inside the create request, which takes a few seconds; a background job queue would be the next step at larger scale. There's no pagination: `GET /notes` returns all of the user's notes (or all that match the tag) in one response. The query is fast because it follows the `(user_id, created_at)` index, but the response grows with the number of notes. The next step would be cursor pagination on `(created_at, id)`, which the existing index and sort order already support.
