@@ -20,8 +20,11 @@ services:
 
   backend:
     build: ./backend
-    # DATABASE_URL in .env points at host "db", this compose service.
     env_file: .env
+    environment:
+      # Inside compose the database is always the "db" service, so this wins
+      # over DATABASE_URL in .env (which may say localhost for non-Docker runs).
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     depends_on:
       db:
         condition: service_healthy
