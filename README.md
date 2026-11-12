@@ -8,7 +8,7 @@ Paste a note, and BriefBase asks an AI model for a short **summary** and **3–5
 | **Backend API** | https://briefbase-production.up.railway.app ([`/docs`](https://briefbase-production.up.railway.app/docs) for Swagger) |
 | **Test account** | `demo@briefbase.dev` / `BriefBase.2026`, or register your own on the login screen (any email, password of 8+ characters) |
 | **AI provider** | Google Gemini (`gemini-3.6-flash`) |
-| **Demo video** | DEMO_VIDEO_URL_HERE |
+| **Demo video** | https://youtu.be/0xPUkyE3kb0 |
 
 ## Submission checklist
 - [x] Repo link: https://github.com/hcoz/briefbase
@@ -19,7 +19,7 @@ Paste a note, and BriefBase asks an AI model for a short **summary** and **3–5
 - [x] `.env.example` committed: [.env.example](.env.example)
 - [x] Migration file committed: [backend/alembic/versions/0001_create_users_and_notes.py](backend/alembic/versions/0001_create_users_and_notes.py)
 - [x] `docker compose up` works locally: see [Run locally](#run-locally)
-- [ ] Demo video link: DEMO_VIDEO_URL_HERE
+- [x] Demo video link: https://youtu.be/0xPUkyE3kb0
 - [x] No secrets committed (gitleaks runs as a pre-commit hook; `.env` is git-ignored)
 
 ## Tech stack
